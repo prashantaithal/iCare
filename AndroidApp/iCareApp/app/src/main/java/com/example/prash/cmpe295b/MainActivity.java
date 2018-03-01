@@ -1,5 +1,6 @@
 package com.example.prash.cmpe295b;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -39,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        Intent i=new Intent(
+                MainActivity.this,
+                SimpleXYPlotActivity.class);
+        startActivity(i);
     }
 
 }
