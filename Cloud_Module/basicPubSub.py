@@ -261,8 +261,8 @@ while True:
     if args.mode == 'both' or args.mode == 'publish':
         bpm = p.BPM
  	#message = {}
-        message = {"Pulse Sensor Values": bpm}
-        #message['ObjectTemperature'] = get_sensor_data() 
+        message = {"PulseSensorValues": bpm}
+        message['ObjectTemperature'] = get_sensor_data() 
         #message['Accelerometer'] = get_move_acc_data()
 	#message['Gyroscope'] = get_move_gyro_data()
 	messageJson = json.dumps(message)
