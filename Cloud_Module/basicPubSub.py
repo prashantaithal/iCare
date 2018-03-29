@@ -55,6 +55,119 @@ AllowedActions = ['both', 'publish', 'subscribe']
 adc = Adafruit_ADS1x15.ADS1015(address=0x48, busnum=1)
 
 
+
+
+# *************************Sensor Tag **************************
+
+def signal_handler(signal, frame):
+        print("__MAIN__: You pressed Ctrl+C!")
+        sys.exit(0)
+
+def floatfromhex(h):
+    t = float.fromhex(h)
+    if t > float.fromhex('7FFF'):
+        t = -(float.fromhex('FFFF') - t)
+        pass
+    return t
+
+def sensor_tag_init():
+	signal.signal(signal.SIGINT, signal_handler)
+	global sensor_data
+        sensor_data = [ [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] , [0,0,0] ]
+	bluetooth_adr ='54:6C:0E:53:18:6C' 
+	global tool 
+        tool = pexpect.spawn('gatttool -b ' + bluetooth_adr + ' --interactive')
+	tool.expect('\[LE\]>')
+	print "Preparing to connect. You might need to press the side button..."
+	tool.sendline('connect') # test for success of connect
+	tool.expect('Connection successful.*\[LE\]>')
+	tool.sendline('char-write-cmd 0x27 01')
+	tool.expect('\[LE\]>')
+	tool.sendline('char-write-cmd 0x3F 3F00') #00111111 00000000
+	tool.expect('\[LE\]>')
+	time_old = time.time()
+        time_test = time.time()
+        time.sleep(0.5)
+
+def get_object_temp(raw_temp_bytes):
+        raw_object_temp = int('0x' + raw_temp_bytes[1] + raw_temp_bytes[0], 16)
+        object_temp_int = raw_object_temp >> 2 & 0x3FFF
+        object_temp_celsius = round ( float(object_temp_int) * 0.03125, 1 )
+        return object_temp_celsius
+
+def signedFromHex16(s):
+        v = int(s,16)
+        if not 0 <= v < 65536:
+                raise ValueError, "Hex Number outside 16bit range"
+        if (v >= 32768):
+                v = v - 65536
+        return v
+
+def get_gyro_data(raw_move_bytes):
+        str_gyro_x =  '0x' + raw_move_bytes[1] + raw_move_bytes[0]
+        raw_gyro_x = signedFromHex16(str_gyro_x)
+        gyro_x = round ( (raw_gyro_x * 1.0) / (32768/250), 1 )
+
+        str_gyro_y = '0x' + raw_move_bytes[3] + raw_move_bytes[2]
+        raw_gyro_y = signedFromHex16(str_gyro_y)
+        gyro_y = round ( (raw_gyro_y * 1.0) / (32768/250), 1 )
+
+        str_gyro_z = '0x' + raw_move_bytes[5] + raw_move_bytes[4]
+        raw_gyro_z = signedFromHex16(str_gyro_z)
+        gyro_z = round ( (raw_gyro_z * 1.0) / (32768/250), 1 )
+
+        raw_gyro = [raw_gyro_x, raw_gyro_y, raw_gyro_z]
+        gyro_data = [gyro_x, gyro_y, gyro_z]
+
+        return gyro_data
+
+def get_acc_data(raw_move_bytes):
+        str_acc_x =  '0x' + raw_move_bytes[7] + raw_move_bytes[6]
+        raw_acc_x = signedFromHex16(str_acc_x)
+        acc_x = round ( ( (raw_acc_x * 1.0) / (32768/2) ), 1 )
+
+        str_acc_y = '0x' + raw_move_bytes[9] + raw_move_bytes[8]
+        raw_acc_y = signedFromHex16(str_acc_y)
+        acc_y = round ( ( (raw_acc_y * 1.0) / (32768/2) ), 1 )
+
+        str_acc_z = '0x' + raw_move_bytes[11] + raw_move_bytes[10]
+        raw_acc_z = signedFromHex16(str_acc_z)
+        acc_z = round ( ( (raw_acc_z * 1.0) / (32768/2) ), 1 )
+
+        raw_acc = [raw_acc_x, raw_acc_y, raw_acc_z]
+        acc_data = [acc_x, acc_y, acc_z]
+        return acc_data
+
+def get_sensor_data():
+    sensor_tag_init()
+    tool.sendline('char-read-hnd 0x24')
+    tool.expect('descriptor: .*')
+    rval = tool.after.split()
+    raw_temp_data = [ rval[1], rval[2], rval[3], rval[4] ]
+    sensor_data[6] = get_object_temp(raw_temp_data)
+    i = sensor_data[6]	
+    return i
+    
+def get_move_acc_data():
+    tool.sendline('char-read-hnd 0x3C')
+    tool.expect('descriptor: .*')
+    rval = tool.after.split()
+    raw_move_data = [ rval[1], rval[2], rval[3], rval[4], rval[5], rval[6], rval[7], rval[8], rval[9], rval[10], rval[11], rval[12], rval[13], rval[14], rval[15], rval[16], rval[17], rval[18] ]
+    sensor_data[3] = get_acc_data(raw_move_data)
+    #sensor_data[3][0] = abs(sensor_data[3][0]) * 0.5
+    #sensor_data[3][1] = abs(sensor_data[3][1]) * 0.5
+    #sensor_data[3][2] = abs(sensor_data[3][2]) * 0.5
+    sensor_data[5] = get_gyro_data(raw_move_data)
+    #sensor_data[5][0] = abs(sensor_data[5][0]) * 0.5
+    #sensor_data[5][1] = abs(sensor_data[5][1]) * 0.5
+    #sensor_data[5][2] = abs(sensor_data[5][2]) * 0.5
+    return sensor_data[3]
+
+
+def get_move_gyro_data():
+    return sensor_data[5]                           
+
+
 # Custom MQTT message callback
 def customCallback(client, userdata, message):
     print("Received a new message: ")
@@ -137,7 +250,11 @@ time.sleep(2)
 loopCount = 0
 while True:
     if args.mode == 'both' or args.mode == 'publish':
+        message = {}
         message = {"ECG Values": heartbeat()}
+        message['ObjectTemperature'] = get_sensor_data() 
+        message['Accelerometer'] = get_move_acc_data()
+	message['Gyroscope'] = get_move_gyro_data()
 	messageJson = json.dumps(message)
         myAWSIoTMQTTClient.publish(topic, messageJson, 1)
         if args.mode == 'publish':
