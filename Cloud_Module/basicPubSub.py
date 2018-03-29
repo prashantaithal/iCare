@@ -25,6 +25,10 @@ import json
 import binascii
 import Adafruit_ADS1x15
 import signal
+from pulsesensor import Pulsesensor
+
+
+
 
 # Create an ADS1115 ADC (16-bit) instance.
 adc = Adafruit_ADS1x15.ADS1115()
@@ -246,15 +250,21 @@ if args.mode == 'both' or args.mode == 'subscribe':
     myAWSIoTMQTTClient.subscribe(topic, 1, customCallback)
 time.sleep(2)
 
+# ******************************** Pulse Sensor ***********************************
+p = Pulsesensor()
+p.startAsyncBPM()
+
+
 # Publish to the same topic in a loop forever
 loopCount = 0
 while True:
     if args.mode == 'both' or args.mode == 'publish':
-        message = {}
-        message = {"ECG Values": heartbeat()}
-        message['ObjectTemperature'] = get_sensor_data() 
-        message['Accelerometer'] = get_move_acc_data()
-	message['Gyroscope'] = get_move_gyro_data()
+        bpm = p.BPM
+ 	#message = {}
+        message = {"Pulse Sensor Values": bpm}
+        #message['ObjectTemperature'] = get_sensor_data() 
+        #message['Accelerometer'] = get_move_acc_data()
+	#message['Gyroscope'] = get_move_gyro_data()
 	messageJson = json.dumps(message)
         myAWSIoTMQTTClient.publish(topic, messageJson, 1)
         if args.mode == 'publish':
