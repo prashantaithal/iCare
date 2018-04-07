@@ -34,10 +34,12 @@ import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobile.auth.ui.SignInUI;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.AWSStartupHandler;
 import com.amazonaws.mobile.client.AWSStartupResult;
+import com.amazonaws.regions.Regions;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -96,7 +98,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
-
+        Intent intent = new Intent(LoginActivity.this, DatabaseActivity.class);
+        startActivity(intent);
+        finish();
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -111,6 +115,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     }
 
+    CognitoCachingCredentialsProvider mCredentialsProvider = new CognitoCachingCredentialsProvider(
+            getApplicationContext(),    /* pega o Context da aplicação */
+            "us-east-1:20906d3b-e871-4070-81df-93e418abadac", // Identity pool ID
+            Regions.US_EAST_1            /* Região para a sua identity pool --US_EAST_1 or EU_WEST_1*/
+    );
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
@@ -118,6 +127,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         getLoaderManager().initLoader(0, null, this);
     }
+
+    CognitoCachingCredentialsProvider cognitoProvider = new CognitoCachingCredentialsProvider(
+            mLoginFormView.getContext(), // get the context for the current activity
+            "AWSACCOUNTID",
+            "region:identity-pool-id",
+            "arn:aws:iam::AWSACCOUNTID:role/UnauthRole",
+            "arn:aws:iam::AWSACCOUNTID:role/AuthRole",
+            Regions.US_EAST_1
+    );
 
     private boolean mayRequestContacts() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
