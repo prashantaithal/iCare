@@ -7,6 +7,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,9 +42,14 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
+//        Intent i=new Intent(
+//                MainActivity.this,
+//                DatabaseActivity.class);
+
         Intent i=new Intent(
                 MainActivity.this,
-                DatabaseActivity.class);
+                DynamicGraphActivity.class);
+
         startActivity(i);
     }
 
