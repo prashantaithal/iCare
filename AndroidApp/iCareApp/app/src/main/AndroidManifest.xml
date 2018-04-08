@@ -30,9 +30,8 @@
         </intent-filter>
         </activity>
         <activity android:name=".SimpleXYPlotActivity" />
-        <activity
-            android:name=".DatabaseActivity">
-        </activity>
+        <activity android:name=".DatabaseActivity"/>
+        <activity android:name=".DynamicGraphActivity" />
     </application>
 
 </manifest>
