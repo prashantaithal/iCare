@@ -5,8 +5,14 @@ import java.util.Random;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.TextView;
+
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -14,9 +20,9 @@ import com.jjoe64.graphview.Viewport;
 
 public class DynamicGraphActivity extends Activity {
 
-
     public List<Double> numbers = new ArrayList<Double>();
-
+    private ArrayList<Data> dataList = new ArrayList<Data>();
+    public SensorDataSQLHelper dbHelper;
     public void numbersRandom()
     {
         for (int i = 0; i < 100; i++) {
@@ -37,6 +43,8 @@ public class DynamicGraphActivity extends Activity {
             GraphView graph = (GraphView) findViewById(R.id.graph);
             // data
             series = new LineGraphSeries<DataPoint>();
+            SensorDataSQLHelper mDbHelper = new SensorDataSQLHelper(getApplicationContext());
+
             graph.addSeries(series);
             // customize a little bit viewport
             Viewport viewport = graph.getViewport();
@@ -44,6 +52,10 @@ public class DynamicGraphActivity extends Activity {
             viewport.setMinY(0);
             viewport.setMaxY(10);
             viewport.setScrollable(true);
+
+           // SensorDataSQLHelper dbHelper = new SensorDataSQLHelper(getApplicationContext());
+           // dataList = dbHelper.obtainSensorDataBase();
+
         }
 
         @Override
@@ -61,6 +73,24 @@ public class DynamicGraphActivity extends Activity {
 
                             @Override
                             public void run() {
+                                SensorDataSQLHelper dbHelper = new SensorDataSQLHelper(getApplicationContext());
+
+                                dataList = dbHelper.obtainSensorDataBase();
+                                Log.d("YahooSize", (Integer.toString(dataList.size())));
+
+                                for (int i = 0; i < dataList.size(); i++) {
+                                    Data home = dataList.get(i);
+                                    Double d = home.getAccxSQL();
+                                    Double e = home.getAccySQL();
+                                    Double f = home.getAcczSQL();
+                                    Double g = home.getGyrySQL();
+                                    Double h = home.getTempSQL();
+
+                                    Double k = home.getPulseSQL();
+
+                                    Log.d("YahooD", k.toString());
+
+                                }
                                 addEntry();
                             }
                         });
@@ -84,4 +114,5 @@ public class DynamicGraphActivity extends Activity {
             //series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), false, 5);
             series.appendData(new DataPoint(lastX++, RANDOM.nextDouble() * 10d), false, 5);
         }
+
 }

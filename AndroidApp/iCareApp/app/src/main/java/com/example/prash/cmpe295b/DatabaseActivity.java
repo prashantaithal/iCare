@@ -54,7 +54,7 @@ public class DatabaseActivity extends AppCompatActivity {
 
                     @Override
                     public void handleError(Exception e) {
-                        //  Log.e("MainActivity", "Error in retrieving Identity ID: " + e.getMessage());
+                          Log.e("MainActivity", "Error in retrieving Identity ID: " + e.getMessage());
                     }
                 });
             }
@@ -67,43 +67,12 @@ public class DatabaseActivity extends AppCompatActivity {
                 .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
                 .build();
 
-        // identityManager = IdentityManager.getDefaultIdentityManager();
-
-//         createTemp();
-
-//        MyTask task = new MyTask ();
-//        task.execute();
-
         //    Log.d("News Item:", d);
 
         readTemp();
 
     }
 
-    //    private class MyTask extends AsyncTask<Void , Void, Void > {
-//
-//        private Exception exception;
-//
-//        protected Void doInBackground(Void... urls) {
-//       //     RpiTableDO sense = dynamoDBMapper.load(RpiTableDO .class, 2.0);
-//            final RpiTableDO sense = new RpiTableDO();
-//
-//            // Item read
-////            Log.d("News Item:", sense.getPulse());
-//         //   d = sense.getPulse();
-//              sense.setSerialNo(99.0);
-//
-//                sense.setPulse(5.0);
-//               sense.setAccel(5.0);
-//            dynamoDBMapper.save(sense);
-//
-//            return null;
-//        }
-//
-//        protected void onPostExecute(Void feed) {
-//
-//        }
-//    }
     public void readTemp() {
         new Thread(new Runnable() {
             @Override
@@ -113,8 +82,10 @@ public class DatabaseActivity extends AppCompatActivity {
                         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
                         count++;
+                        Log.d("countER", count.toString());
+
                         RpiTableDO sense = dynamoDBMapper.load(RpiTableDO.class, count);
-                        Log.d("count", count.toString());
+                        Log.d("countERs", count.toString());
 
                         // Item read
                         //Log.d("Data Item:", sense.getGyrY());
@@ -139,6 +110,7 @@ public class DatabaseActivity extends AppCompatActivity {
                         listOLists.add(tempList);
 
                     } catch (Exception e) {
+                        Log.d("MCATc", count.toString());
                         e.printStackTrace();
                         Log.e("", e.getMessage());
                         break;
