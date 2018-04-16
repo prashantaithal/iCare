@@ -53,5 +53,6 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-ddb:2.6.+'
 
     //Dynamic Graph library
+    //implementation files('libs/GraphView-4.2.1.jar')
     implementation 'com.jjoe64:graphview:4.2.1'
 }
