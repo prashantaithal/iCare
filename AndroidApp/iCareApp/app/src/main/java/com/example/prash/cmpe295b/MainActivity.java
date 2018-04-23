@@ -7,12 +7,18 @@ import android.content.IntentFilter;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.view.View;
 import android.widget.Toast;
@@ -28,8 +34,9 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FragmentActivity implements View.OnClickListener  {
     DynamoDBMapper dynamoDBMapper;
+    private ArrayList<Data> dataList = new ArrayList<Data>();
 
     private TextView mTextMessage;
 
@@ -53,12 +60,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SensorDataSQLHelper dbHelper = new SensorDataSQLHelper(getApplicationContext());
-
+        Button buttonOne = (Button) findViewById(R.id.button2);
+        buttonOne.setOnClickListener(this);
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -75,9 +83,10 @@ public class MainActivity extends AppCompatActivity {
                     public void onIdentityId(String s) {
 
                     }
+
                     @Override
                     public void handleError(Exception e) {
-                          Log.e("MainActivity", "Error in retrieving Identity ID: " + e.getMessage());
+                        Log.e("MainActivity", "Error in retrieving Identity ID: " + e.getMessage());
                     }
                 });
             }
@@ -95,16 +104,117 @@ public class MainActivity extends AppCompatActivity {
         msgIntent.putExtra(DBIntentService.ACTION_FOO, strInputMsg);
 //       startService(msgIntent);
 
-//        Intent i=new Intent(
-//                MainActivity.this,
-//                DatabaseActivity.class);
 
-        Intent i=new Intent(
-                MainActivity.this,
-                DynamicGraphActivity.class);
 
-        startActivity(i);
+
+
+        // readPulse();
+
+
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // we're going to simulate real time with thread that append data to the graph
+        new Thread(new Runnable() {
+            int j = 0;
 
+            @Override
+            public void run() {
+
+                while (true) {
+                    runOnUiThread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
+                            SensorDataSQLHelper dbHelper = new SensorDataSQLHelper(getApplicationContext());
+
+                            dataList = dbHelper.obtainSensorDataBase();
+//                            Log.d("PULSE", Integer.toString(dataList.size()));
+
+                            Data home = dataList.get(j);
+                            j++;
+                            Double k = home.getPulseSQL();
+                            // Thread.sleep(600);
+
+                            mTextMessage.setText(k.toString());
+                            Log.d("YahooD", k.toString());
+
+                            if (j == dataList.size()) {
+                                j = 0;
+                            }
+                        }
+                    });
+
+                    // sleep to slow down the add of entries
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        // manage error ...
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void readPulse() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
+                        SensorDataSQLHelper dbHelper = new SensorDataSQLHelper(getApplicationContext());
+
+                        dataList = dbHelper.obtainSensorDataBase();
+                        Log.d("PULSE", Integer.toString(dataList.size()));
+
+                        for (int j = 0; j < dataList.size(); j++) {
+                            Data home = dataList.get(j);
+
+                            Double k = home.getPulseSQL();
+                            Thread.sleep(600);
+
+                            mTextMessage.setText(k.toString());
+                            Log.d("YahooD", k.toString());
+
+                            if (j == dataList.size()) {
+                                j = 0;
+                            }
+                        }
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e("", e.getMessage());
+                        break;
+                    }
+
+                }
+            }
+        }).start();
+    }
+
+    public void updateTextView(String toThis) {
+        TextView textView = (TextView) findViewById(R.id.textView);
+        textView.setText(toThis);
+    }
+
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case  R.id.button2: {
+                Intent i = new Intent(
+                        MainActivity.this,
+                        DynamicGraphActivity.class);
+
+                     startActivity(i);
+                break;
+            }
+        }
+    }
 }
+

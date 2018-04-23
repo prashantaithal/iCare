@@ -1,13 +1,11 @@
 package com.example.prash.cmpe295b;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -831,19 +829,6 @@ public class DynamicGraphActivity extends Activity {
     // private static final Random RANDOM = new Random();
     private LineGraphSeries<DataPoint> series;
     private int lastX = 0;
-    public List<Double> numbers = new ArrayList<Double>();
-    private ArrayList<Data> dataList = new ArrayList<Data>();
-    public SensorDataSQLHelper dbHelper;
-    public void numbersRandom()
-    {
-        for (int i = 0; i < 100; i++) {
-            numbers.add(Math.random());
-        }
-    }
-
-    private static final Random RANDOM = new Random();
-        private LineGraphSeries<DataPoint> series;
-        private int lastX = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -855,8 +840,6 @@ public class DynamicGraphActivity extends Activity {
         // data
         series = new LineGraphSeries<DataPoint>();
         graph.addSeries(series);
-        SensorDataSQLHelper mDbHelper = new SensorDataSQLHelper(getApplicationContext());
-
 
         // customize a little bit viewport
         graph.setTitle("ECG");
@@ -880,53 +863,42 @@ public class DynamicGraphActivity extends Activity {
         //graph.getGridLabelRenderer().setVerticalAxisTitle / setHorizontalAxisTitle
     }
 
-        @Override
-        protected void onResume()
-        {
-            super.onResume();
-            // we're going to simulate real time with thread that append data to the graph
-            new Thread(new Runnable() {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // we're going to simulate real time with thread that append data to the graph
+        new Thread(new Runnable() {
 
-                @Override
-                public void run() {
+            @Override
+            public void run() {
 
-                    while (true){
-                        runOnUiThread(new Runnable() {
+                for( int i=0; i<799;i++ ) {
 
-                            @Override
-                            public void run() {
-                                SensorDataSQLHelper dbHelper = new SensorDataSQLHelper(getApplicationContext());
-
-                                dataList = dbHelper.obtainSensorDataBase();
-                                Log.d("YahooSize", (Integer.toString(dataList.size())));
-
-                                for (int i = 0; i < dataList.size(); i++) {
-                                    Data home = dataList.get(i);
-                                    Double d = home.getAccxSQL();
-                                    Double e = home.getAccySQL();
-                                    Double f = home.getAcczSQL();
-                                    Double g = home.getGyrySQL();
-                                    Double h = home.getTempSQL();
-
-                                    Double k = home.getPulseSQL();
-
-                                    Log.d("YahooD", k.toString());
-
-                                }
-                                addEntry();
-                            }
-                        });
-
-                        // sleep to slow down the add of entries
-                        try {
-                            Thread.sleep(600);
-                        } catch (InterruptedException e) {
-                            // manage error ...
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            addEntry();
                         }
+                    });
+
+//                    if(i==798) {
+//                        i = 0;
+//                        lastX=1;
+//                    }
+
+                    // sleep to slow down the add of entries
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        // manage error ...
                     }
+
+                    Log.d("hello %d","hello");
+
                 }
-            }).start();
-        }
+            }
+        }).start();
+    }
 
     // add random data to graph
     private void addEntry() {

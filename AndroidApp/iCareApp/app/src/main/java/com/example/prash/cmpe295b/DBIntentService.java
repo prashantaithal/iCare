@@ -82,7 +82,6 @@ public class DBIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
         if (intent != null) {
-            Log.d("Yahoo", "Started1");
 //
 //            AWSMobileClient.getInstance().initialize(this, new AWSStartupHandler() {
 //                @Override
