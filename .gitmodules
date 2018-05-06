@@ -1,0 +1,3 @@
+[submodule "cmpe295_sensortag"]
+	path = cmpe295_sensortag
+	url = https://github.com/shruthinarayan/cmpe295_sensortag.git
